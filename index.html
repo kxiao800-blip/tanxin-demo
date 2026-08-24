@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>遇次元 · 第一次谈心</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #11131c;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  color: #fff;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.phone {
+  width: 390px;
+  height: 844px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 36px;
+  background:
+    radial-gradient(circle at 60% 35%, rgba(163, 58, 129, .14), transparent 28%),
+    linear-gradient(180deg, #080a12, #0d101a 55%, #080a12);
+  box-shadow: 0 25px 80px rgba(0,0,0,.55);
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* 顶部状态栏 */
+.status-bar {
+  height: 38px;
+  padding: 11px 18px 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* 角色顶部栏 */
+.chat-header {
+  height: 68px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex-shrink: 0;
+}
+
+.back-btn {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 28px;
+}
+
+.avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+  background:
+    radial-gradient(circle at 38% 28%, #78588a 0 15%, #332139 36%, #10111a 70%);
+  border: 1px solid rgba(255,255,255,.16);
+}
+
+.avatar::before {
+  content: "";
+  position: absolute;
+  width: 25px;
+  height: 31px;
+  left: 10px;
+  top: 8px;
+  border-radius: 60% 45% 48% 52%;
+  background: linear-gradient(180deg,#1c1524,#080910);
+  transform: rotate(5deg);
+}
+
+.online-dot {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  right: 0;
+  bottom: 1px;
+  background: #28b76c;
+  border-radius: 50%;
+  border: 2px solid #090b12;
+  z-index: 2;
+}
+
+.header-info {
+  flex: 1;
+}
+
+.header-name {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.header-sub {
+  margin-top: 3px;
+  font-size: 12px;
+  color: #9b9ca8;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.header-icon {
+  width: 31px;
+  height: 31px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 18px;
+}
+
+/* 陪伴值条 */
+.relation-card {
+  margin: 4px 18px 16px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.09);
+  background: rgba(255,255,255,.035);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.relation-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.heart-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg,#a54d78,#f3659a);
+  font-size: 22px;
+}
+
+.relation-title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.relation-value {
+  margin-left: auto;
+  color: #a3a3ae;
+  font-size: 14px;
+}
+
+.progress {
+  height: 5px;
+  margin: 8px 0 0 48px;
+  border-radius: 3px;
+  background: #292b32;
+  overflow: hidden;
+}
+
+.progress-fill {
+  width: 40%;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg,#bb4277,#ef5c96);
+  transition: width .4s ease;
+}
+
+/* 聊天区 */
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 18px 88px;
+}
+
+.chat-area::-webkit-scrollbar {
+  display: none;
+}
+
+.message-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.mini-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background:
+    radial-gradient(circle at 40% 30%,#765b8d,#11131c 66%);
+}
+
+.message {
+  max-width: 78%;
+  padding: 13px 15px;
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(255,255,255,.03);
+  border-radius: 17px;
+  line-height: 1.65;
+  font-size: 15px;
+}
+
+.message-time {
+  margin-left: 42px;
+  color: #757782;
+  font-size: 11px;
+  margin-top: -8px;
+}
+
+.composer {
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  bottom: 14px;
+  height: 54px;
+  border-radius: 27px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  background: #151822;
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.composer-input {
+  flex: 1;
+  color: #777b87;
+  font-size: 14px;
+}
+
+.round-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,.08);
+  color: #ccc;
+}
+
+/* 解锁弹窗 */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(0,0,0,.58);
+}
+
+.unlock-card {
+  width: 100%;
+  max-width: 330px;
+  position: relative;
+  padding: 28px 24px 20px;
+  border-radius: 26px;
+  text-align: center;
+  color: #3d2635;
+  background: linear-gradient(180deg,#fff8f9,#f8ebf0);
+  box-shadow: 0 20px 80px rgba(223,72,135,.3);
+}
+
+.unlock-heart {
+  width: 74px;
+  height: 74px;
+  margin: -58px auto 12px;
+  border-radius: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 34px;
+  background: radial-gradient(circle at 35% 28%,#ffb8cb,#ef6594 60%,#b53d69);
+  box-shadow: 0 0 30px rgba(243,92,145,.5);
+}
+
+.unlock-card h1 {
+  color: #7c294a;
+  font-size: 27px;
+  margin-bottom: 10px;
+}
+
+.unlock-card p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #60424f;
+}
+
+.reward-box {
+  margin: 16px 0;
+  padding: 11px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.6);
+  color: #7b3a55;
+}
+
+.primary-btn {
+  width: 100%;
+  height: 49px;
+  border: 0;
+  border-radius: 25px;
+  color: #fff;
+  font-size: 17px;
+  background: linear-gradient(90deg,#ff6989,#e94789 60%,#c74ab7);
+}
+
+.secondary-btn {
+  width: 100%;
+  height: 45px;
+  margin-top: 10px;
+  border-radius: 23px;
+  border: 1px solid rgba(116,53,80,.18);
+  color: #60404d;
+  background: transparent;
+}
+
+/* 谈心问答 */
+.question-screen {
+  overflow-y: auto;
+}
+
+.question-screen::-webkit-scrollbar {
+  display: none;
+}
+
+.question-title {
+  text-align: center;
+  padding: 4px 20px 10px;
+}
+
+.question-title h2 {
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+.question-title p {
+  font-size: 12px;
+  color: #9798a4;
+}
+
+.question-card {
+  margin: 11px 16px;
+  padding: 17px;
+  border-radius: 21px;
+  background: #131621;
+  border: 1px solid rgba(237,84,145,.25);
+}
+
+.question-text {
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.question-number {
+  display: inline-flex;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  justify-content: center;
+  align-items: center;
+  margin-right: 7px;
+  background: #8c3861;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.option-btn {
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  color: #ebe8ee;
+  background: #1a1d29;
+  border: 1px solid rgba(255,255,255,.1);
+  font-size: 13px;
+}
+
+.option-btn.selected {
+  background: linear-gradient(90deg,#a83c70,#cf4f8f);
+  border-color: #f292b9;
+}
+
+.custom-answer {
+  height: 44px;
+  margin-top: 8px;
+  padding: 0 12px;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  border-radius: 16px;
+  border: 1px solid rgba(241,115,165,.36);
+}
+
+.custom-answer input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  color: #fff;
+  background: transparent;
+  font-size: 13px;
+}
+
+.custom-answer input::placeholder {
+  color: #727581;
+}
+
+.question-footer {
+  padding: 5px 16px 35px;
+}
+
+.continue-btn {
+  width: 100%;
+  height: 49px;
+  border: 0;
+  border-radius: 25px;
+  background: linear-gradient(90deg,#ff6989,#e94789 60%,#c74ab7);
+  color: #fff;
+  font-size: 17px;
+}
+
+.continue-btn:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+/* 完成页 */
+.complete-screen {
+  overflow-y: auto;
+  padding: 14px 18px 26px;
+  background:
+    radial-gradient(circle at 50% 10%,rgba(224,74,146,.15),transparent 24%),
+    linear-gradient(180deg,#090b17,#080a12);
+}
+
+.complete-screen::-webkit-scrollbar {
+  display: none;
+}
+
+.complete-title {
+  text-align: center;
+  color: #ffd7e3;
+  font-size: 30px;
+  margin: 10px 0 5px;
+}
+
+.complete-subtitle {
+  text-align: center;
+  color: #d6bbca;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.memory-card {
+  position: relative;
+  padding: 23px 20px 0;
+  border-radius: 25px;
+  color: #3d2557;
+  background: linear-gradient(180deg,#f4eaf1,#eee0e8);
+  box-shadow: 0 18px 55px rgba(0,0,0,.25);
+}
+
+.memory-card h2 {
+  font-size: 24px;
+  margin-bottom: 17px;
+}
+
+.polaroid {
+  position: absolute;
+  width: 104px;
+  height: 124px;
+  right: 14px;
+  top: 16px;
+  padding: 7px;
+  background: #fff;
+  transform: rotate(5deg);
+  box-shadow: 0 8px 18px rgba(0,0,0,.14);
+}
+
+.polaroid-photo {
+  height: 92px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 70% 35%,#d9915b 0 4%,transparent 5%),
+    radial-gradient(circle at 35% 55%,#44344f 0 18%,transparent 19%),
+    linear-gradient(180deg,#172039 0 64%,#3e2331 64%);
+}
+
+.polaroid-photo::before,
+.polaroid-photo::after {
+  content: "";
+  position: absolute;
+  bottom: 10px;
+  width: 20px;
+  height: 42px;
+  border-radius: 50% 50% 30% 30%;
+  background: #151727;
+}
+
+.polaroid-photo::before {
+  left: 28px;
+}
+
+.polaroid-photo::after {
+  left: 52px;
+  height: 38px;
+}
+
+.meta {
+  padding-right: 106px;
+  font-size: 14px;
+  line-height: 1.9;
+  margin-bottom: 18px;
+}
+
+.memory-section {
+  padding: 16px 0;
+  border-top: 1px solid rgba(105,69,117,.13);
+}
+
+.memory-section h3 {
+  font-size: 16px;
+  margin-bottom: 9px;
+}
+
+.memory-section p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  padding: 7px 14px;
+  border-radius: 18px;
+  font-size: 12px;
+  background: #e4d4e4;
+}
+
+.tag.active {
+  color: #fff;
+  background: linear-gradient(90deg,#fa7495,#d65096);
+}
+
+.reward-result {
+  margin: 0 -20px;
+  padding: 15px 18px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: linear-gradient(90deg,#ead8e7,#f3dce3);
+}
+
+.reward-heart {
+  font-size: 34px;
+}
+
+.reward-result b {
+  font-size: 16px;
+}
+
+.reward-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #d84e82;
+}
+
+.complete-actions {
+  display: grid;
+  gap: 9px;
+  padding: 18px 0 8px;
+}
+
+.archive-btn {
+  height: 50px;
+  border: 0;
+  border-radius: 25px;
+  color: #fff;
+  font-size: 17px;
+  background: linear-gradient(90deg,#ff6e90,#d34caf);
+}
+
+.chat-btn {
+  height: 43px;
+  border: 0;
+  color: #bea9c5;
+  background: transparent;
+  font-size: 15px;
+}
+
+/* 关系档案抽屉 */
+.archive-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: none;
+  align-items: flex-end;
+  background: rgba(0,0,0,.65);
+}
+
+.archive-overlay.show {
+  display: flex;
+}
+
+.archive-sheet {
+  width: 100%;
+  padding: 21px 18px 28px;
+  border-radius: 25px 25px 0 0;
+  background: #151822;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.archive-sheet h3 {
+  margin-bottom: 15px;
+}
+
+.archive-row {
+  padding: 13px 0;
+  border-top: 1px solid rgba(255,255,255,.08);
+  font-size: 14px;
+  color: #ddd8e0;
+}
+
+.close-sheet {
+  width: 100%;
+  height: 45px;
+  margin-top: 14px;
+  border-radius: 23px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: #202330;
+  color: #fff;
+}
+
+@media (max-width: 430px) {
+  body {
+    align-items: flex-start;
+    background: #080a12;
+  }
+
+  .phone {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="phone">
+
+  <!-- 聊天页 -->
+  <div class="screen active" id="chat-screen">
+
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>●●● Wi-Fi ▰</span>
+    </div>
+
+    <div class="chat-header">
+      <button class="back-btn">‹</button>
+
+      <div class="avatar">
+        <span class="online-dot"></span>
+      </div>
+
+      <div class="header-info">
+        <div class="header-name">TA</div>
+        <div class="header-sub">● 在线 · 总能在你需要时出现</div>
+      </div>
+
+      <div class="header-actions">
+        <button class="header-icon">☆</button>
+        <button class="header-icon">···</button>
+      </div>
+    </div>
+
+    <div class="relation-card" id="relation-card">
+      <div class="relation-top">
+        <div class="heart-icon">💗</div>
+        <div class="relation-title">Lv.3 熟悉</div>
+        <div class="relation-value">
+          陪伴值 <span id="top-value">40</span> / 100 ›
+        </div>
+      </div>
+
+      <div class="progress">
+        <div class="progress-fill" id="top-progress"></div>
+      </div>
+    </div>
+
+    <div class="chat-area">
+
+      <div class="message-row">
+        <div class="mini-avatar"></div>
+        <div class="message">
+          和你聊了这么久，<br>
+          我发现我们已经不只是普通聊天了。
+        </div>
+      </div>
+
+      <div class="message-time">20:20</div>
+
+      <div class="message-row">
+        <div class="mini-avatar"></div>
+        <div class="message">
+          我越来越想认真了解你。
+        </div>
+      </div>
+
+      <div class="message-time">20:21</div>
+
+      <div class="message-row">
+        <div class="mini-avatar"></div>
+        <div class="message">
+          所以今天，我想问你几个小问题，可以吗？
+        </div>
+      </div>
+
+      <div class="message-time">20:22</div>
+
+    </div>
+
+    <div class="composer">
+      <div class="round-icon">◌</div>
+      <div class="composer-input">输入消息...</div>
+      <div class="round-icon">☺</div>
+      <div class="round-icon">＋</div>
+    </div>
+
+  </div>
+
+
+  <!-- 谈心问题页 -->
+  <div class="screen question-screen" id="question-screen">
+
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>●●● Wi-Fi ▰</span>
+    </div>
+
+    <div class="chat-header">
+      <button class="back-btn" id="question-back">‹</button>
+
+      <div class="avatar">
+        <span class="online-dot"></span>
+      </div>
+
+      <div class="header-info">
+        <div class="header-name">TA</div>
+        <div class="header-sub">● 在线 · 第一次谈心</div>
+      </div>
+
+      <div class="header-actions">
+        <button class="header-icon">☆</button>
+      </div>
+    </div>
+
+    <div class="relation-card">
+      <div class="relation-top">
+        <div class="heart-icon">💗</div>
+        <div class="relation-title">Lv.3 熟悉</div>
+        <div class="relation-value">
+          陪伴值 40 / 100 ›
+        </div>
+      </div>
+
+      <div class="progress">
+        <div class="progress-fill"></div>
+      </div>
+    </div>
+
+    <div class="question-title">
+      <h2>让我们更好地了解彼此吧</h2>
+      <p>完成以下 3 个小互动，帮 TA 更懂你</p>
+    </div>
+
+
+    <div class="question-card" data-question="q1">
+
+      <div class="question-text">
+        <span class="question-number">1</span>
+        如果最近累了，你更希望有人怎么陪你？
+      </div>
+
+      <div class="options">
+        <button class="option-btn">陪我聊天</button>
+        <button class="option-btn">讲开心的事</button>
+        <button class="option-btn">安静陪着我</button>
+        <button class="option-btn">帮我分析问题</button>
+      </div>
+
+      <div class="custom-answer">
+        <span>✎</span>
+        <input type="text" maxlength="30" placeholder="输入你的答案（可选）">
+      </div>
+
+    </div>
+
+
+    <div class="question-card" data-question="q2">
+
+      <div class="question-text">
+        <span class="question-number">2</span>
+        朋友通常会怎么形容你？
+      </div>
+
+      <div class="options">
+        <button class="option-btn">温柔可靠</button>
+        <button class="option-btn">嘴硬心软</button>
+        <button class="option-btn">乐观有趣</button>
+        <button class="option-btn">安静敏感</button>
+      </div>
+
+      <div class="custom-answer">
+        <span>✎</span>
+        <input type="text" maxlength="30" placeholder="输入你的答案（可选）">
+      </div>
+
+    </div>
+
+
+    <div class="question-card" data-question="q3">
+
+      <div class="question-text">
+        <span class="question-number">3</span>
+        以后和我聊天，你更喜欢？
+      </div>
+
+      <div class="options">
+        <button class="option-btn">分享日常</button>
+        <button class="option-btn">聊心事</button>
+        <button class="option-btn">一起玩</button>
+        <button class="option-btn">听我讲故事</button>
+      </div>
+
+      <div class="custom-answer">
+        <span>✎</span>
+        <input type="text" maxlength="30" placeholder="输入你的答案（可选）">
+      </div>
+
+    </div>
+
+
+    <div class="question-footer">
+      <button class="continue-btn" id="finish-btn" disabled>
+        继续
+      </button>
+    </div>
+
+  </div>
+
+
+  <!-- 完成页 -->
+  <div class="screen complete-screen" id="complete-screen">
+
+    <h1 class="complete-title">♥ 谈心完成！ ♥</h1>
+
+    <div class="complete-subtitle">
+      TA 更了解你了，我们的关系也更进一步~
+    </div>
+
+    <div class="memory-card">
+
+      <h2>第一次谈心纪念</h2>
+
+      <div class="polaroid">
+        <div class="polaroid-photo"></div>
+      </div>
+
+      <div class="meta">
+        <div>与 TA 认识：<b>第7天</b></div>
+        <div>关系阶段：<b>熟悉</b></div>
+      </div>
+
+
+      <div class="memory-section">
+
+        <h3>♥ TA眼中的你</h3>
+
+        <p id="summary-text">
+          你是一个温柔可靠的人，也希望拥有稳定、舒服的陪伴。
+        </p>
+
+      </div>
+
+
+      <div class="memory-section">
+
+        <h3>关键词</h3>
+
+        <div class="tags" id="keyword-tags">
+          <span class="tag">温柔</span>
+          <span class="tag">可靠</span>
+          <span class="tag">慢热</span>
+          <span class="tag">有想法</span>
+        </div>
+
+      </div>
+
+
+      <div class="memory-section">
+
+        <h3>我们更喜欢的相处方式</h3>
+
+        <div class="tags" id="style-tags">
+          <span class="tag">分享日常</span>
+          <span class="tag active">聊心事 ♥</span>
+          <span class="tag">一起玩</span>
+          <span class="tag">听我讲故事</span>
+        </div>
+
+        <p id="custom-text"
+           style="margin-top:12px;color:#6c5774;">
+        </p>
+
+      </div>
+
+
+      <div class="reward-result">
+
+        <div class="reward-heart">💗</div>
+
+        <div>
+          <b>奖励已获得</b><br>
+          <span class="reward-value">陪伴值 +20</span><br>
+          <span style="font-size:12px;">
+            已存入你的关系档案
+          </span>
+        </div>
+
+      </div>
+
+
+      <div class="complete-actions">
+
+        <button class="archive-btn" id="archive-btn">
+          查看关系档案
+        </button>
+
+        <button class="chat-btn" id="return-chat">
+          继续和 TA 聊天
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- 初始解锁弹窗 -->
+  <div class="overlay" id="unlock-overlay">
+
+    <div class="unlock-card">
+
+      <div class="unlock-heart">🔒</div>
+
+      <h1>第一次谈心解锁</h1>
+
+      <p>
+        和 TA 聊了这么久，你们已经不只是普通聊天。
+        TA 想认真了解你一次。
+      </p>
+
+      <div class="reward-box">
+        🎁 解锁奖励：
+        <b>第一次谈心</b>
+      </div>
+
+      <button class="primary-btn" id="start-btn">
+        开始谈心
+      </button>
+
+      <button class="secondary-btn" id="later-btn">
+        以后再说
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- 关系档案 -->
+  <div class="archive-overlay" id="archive-overlay">
+
+    <div class="archive-sheet">
+
+      <h3>关系档案</h3>
+
+      <div class="archive-row">
+        <b>关系阶段：</b> 熟悉
+      </div>
+
+      <div class="archive-row">
+        <b>第一次谈心：</b> 已完成
+      </div>
+
+      <div class="archive-row">
+        <b>陪伴值：</b> 60 / 100
+      </div>
+
+      <div class="archive-row">
+        <b>偏好记录：</b>
+        <span id="archive-pref">已记录</span>
+      </div>
+
+      <button class="close-sheet" id="close-archive">
+        关闭
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+var answers = {
+  q1: "",
+  q2: "",
+  q3: ""
+};
+
+var customAnswers = {
+  q1: "",
+  q2: "",
+  q3: ""
+};
+
+
+/* 页面切换 */
+function showScreen(id) {
+
+  var screens = document.querySelectorAll(".screen");
+
+  for (var i = 0; i < screens.length; i++) {
+    screens[i].classList.remove("active");
+  }
+
+  document.getElementById(id).classList.add("active");
+
+}
+
+
+/* 验证三题是否完成 */
+function checkFinished() {
+
+  var btn = document.getElementById("finish-btn");
+
+  if (
+    answers.q1 !== "" &&
+    answers.q2 !== "" &&
+    answers.q3 !== ""
+  ) {
+    btn.disabled = false;
+  } else {
+    btn.disabled = true;
+  }
+
+}
+
+
+/* 开始谈心 */
+document.getElementById("start-btn").onclick = function () {
+
+  document.getElementById("unlock-overlay").style.display = "none";
+
+  showScreen("question-screen");
+
+};
+
+
+/* 以后再说 */
+document.getElementById("later-btn").onclick = function () {
+
+  document.getElementById("unlock-overlay").style.display = "none";
+
+};
+
+
+/* 点击陪伴值重新打开奖励 */
+document.getElementById("relation-card").onclick = function () {
+
+  document.getElementById("unlock-overlay").style.display = "flex";
+
+};
+
+
+/* 问答页返回 */
+document.getElementById("question-back").onclick = function () {
+
+  showScreen("chat-screen");
+
+};
+
+
+/* 初始化选项交互 */
+var cards = document.querySelectorAll(".question-card");
+
+for (var i = 0; i < cards.length; i++) {
+
+  (function(card) {
+
+    var questionKey = card.getAttribute("data-question");
+
+    var optionButtons = card.querySelectorAll(".option-btn");
+
+    var input = card.querySelector("input");
+
+
+    for (var j = 0; j < optionButtons.length; j++) {
+
+      optionButtons[j].onclick = function () {
+
+        for (var x = 0; x < optionButtons.length; x++) {
+          optionButtons[x].classList.remove("selected");
+        }
+
+        this.classList.add("selected");
+
+        answers[questionKey] = this.innerText;
+
+        customAnswers[questionKey] = "";
+
+        input.value = "";
+
+        checkFinished();
+
+      };
+
+    }
+
+
+    input.oninput = function () {
+
+      var value = this.value.trim();
+
+      if (value !== "") {
+
+        for (var x = 0; x < optionButtons.length; x++) {
+          optionButtons[x].classList.remove("selected");
+        }
+
+        answers[questionKey] = value;
+
+        customAnswers[questionKey] = value;
+
+      } else {
+
+        answers[questionKey] = "";
+
+        customAnswers[questionKey] = "";
+
+      }
+
+      checkFinished();
+
+    };
+
+  })(cards[i]);
+
+}
+
+
+/* 生成完成页内容 */
+function createSummary() {
+
+  var q1 = answers.q1;
+  var q2 = answers.q2;
+  var q3 = answers.q3;
+
+  var personalityText = "";
+
+  if (q2 === "温柔可靠") {
+    personalityText =
+      "你是一个温柔可靠的人，习惯照顾身边的人。";
+  }
+  else if (q2 === "嘴硬心软") {
+    personalityText =
+      "你有自己的坚持，但其实很在意身边人的感受。";
+  }
+  else if (q2 === "乐观有趣") {
+    personalityText =
+      "你更愿意把轻松和快乐带给身边的人。";
+  }
+  else if (q2 === "安静敏感") {
+    personalityText =
+      "你观察细腻，也很在意交流中的真实感受。";
+  }
+  else {
+    personalityText =
+      "你觉得自己更像“" + q2 + "”这样的人。";
+  }
+
+
+  document.getElementById("summary-text").innerText =
+    personalityText +
+    " 你更希望被“" +
+    q1 +
+    "”，和 TA 相处时更偏向“" +
+    q3 +
+    "”。";
+
+
+  /* 关键词 */
+  var keywordBox = document.getElementById("keyword-tags");
+
+  keywordBox.innerHTML = "";
+
+  var tags = [q2, q1, q3];
+
+  for (var i = 0; i < tags.length; i++) {
+
+    var tag = document.createElement("span");
+
+    tag.className = "tag";
+
+    tag.innerText = tags[i];
+
+    keywordBox.appendChild(tag);
+
+  }
+
+
+  /* 相处方式高亮 */
+  var styleBox = document.getElementById("style-tags");
+
+  var styleTags = styleBox.querySelectorAll(".tag");
+
+  for (var j = 0; j < styleTags.length; j++) {
+
+    styleTags[j].classList.remove("active");
+
+    if (
+      styleTags[j].innerText.indexOf(q3) !== -1
+    ) {
+      styleTags[j].classList.add("active");
+    }
+
+  }
+
+
+  /* 用户自定义输入 */
+  var customs = [];
+
+  if (customAnswers.q1 !== "") {
+    customs.push(customAnswers.q1);
+  }
+
+  if (customAnswers.q2 !== "") {
+    customs.push(customAnswers.q2);
+  }
+
+  if (customAnswers.q3 !== "") {
+    customs.push(customAnswers.q3);
+  }
+
+
+  if (customs.length > 0) {
+
+    document.getElementById("custom-text").innerText =
+      "你补充的方式：" + customs.join(" / ");
+
+  } else {
+
+    document.getElementById("custom-text").innerText = "";
+
+  }
+
+
+  document.getElementById("archive-pref").innerText =
+    q1 + " · " + q2 + " · " + q3;
+
+}
+
+
+/* 完成谈心 */
+document.getElementById("finish-btn").onclick = function () {
+
+  createSummary();
+
+  showScreen("complete-screen");
+
+};
+
+
+/* 打开关系档案 */
+document.getElementById("archive-btn").onclick = function () {
+
+  document.getElementById("archive-overlay")
+    .classList.add("show");
+
+};
+
+
+/* 关闭关系档案 */
+document.getElementById("close-archive").onclick = function () {
+
+  document.getElementById("archive-overlay")
+    .classList.remove("show");
+
+};
+
+
+/* 返回聊天 */
+document.getElementById("return-chat").onclick = function () {
+
+  document.getElementById("top-value").innerText = "60";
+
+  document.getElementById("top-progress").style.width = "60%";
+
+  showScreen("chat-screen");
+
+};
+
+</script>
+
+</body>
+</html>
